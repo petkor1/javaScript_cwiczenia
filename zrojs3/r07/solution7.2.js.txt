@@ -1,0 +1,26 @@
+function lazyRobot({place, parcels}, route) {
+  if (route.length == 0) {
+    // Opis trasy dla ka¿dej paczki
+    let routes = parcels.map(parcel => {
+      if (parcel.place != place) {
+        return {route: findRoute(roadGraph, place, parcel.place),
+                pickUp: true};
+      } else {
+        return {route: findRoute(roadGraph, place, parcel.address),
+                pickUp: false};
+      }
+    });
+
+    // Okreœla pierwszeñstwo wyboru tras.
+    // D³ugoœæ trasy ma wp³yw negatywny, trasy, na których jest paczka
+    // s¹ lekko preferowane.
+    function score({route, pickUp}) {
+      return (pickUp ? 0.5 : 0) - route.length;
+    }
+    route = routes.reduce((a, b) => score(a) > score(b) ? a : b).route;
+  }
+
+  return {direction: route[0], memory: route.slice(1)};
+}
+
+runRobotAnimation(VillageState.random(), lazyRobot, []);

@@ -1,0 +1,91 @@
+<!doctype html>
+<script src="code/chapter/16_game.js"></script>
+<script src="code/levels.js"></script>
+
+<link rel="stylesheet" href="css/game.css">
+
+<body>
+<script>
+  // Aby by³o wiadomo, kiedy zatrzymaæ i zrestartowaæ animacjê, wyœwietlany poziom
+  // mo¿e byæ w trzech stanach:
+  //
+  // * "yes":     Dzia³a normalnie.
+  // * "no":      Wstrzymany, animacja nie dzia³a
+  // * "pausing": Musi wstrzymaæ, ale animacji dzia³a
+  //
+  // Kiedy u¿ytkownik naciœnie klawisz Esc, procedura obs³ugi klawiszy wykonuje
+  // ró¿ne czynnoœci zale¿nie od stanu. W stanie
+  // "yes" i "pausing" prze³¹cza siê na drugi z tych dwóch.
+  // W stanie "no" restartuje animacjê i prze³¹cza na stan
+  // "yes".
+  //
+  // Funkcja animacji, w stanie "pausing", ustawi stan na
+  // "no" i zwróci false, aby zatrzymaæ animacjê.
+
+  function runLevel(level, Display) {
+    let display = new Display(document.body, level);
+    let state = State.start(level);
+    let ending = 1;
+    let running = "yes";
+
+    return new Promise(resolve => {
+      function escHandler(event) {
+        if (event.key != "Escape") return;
+        event.preventDefault();
+        if (running == "no") {
+          running = "yes";
+          runAnimation(frame);
+        } else if (running == "yes") {
+          running = "pausing";
+        } else {
+          running = "yes";
+        }
+      }
+      window.addEventListener("keydown", escHandler);
+      let arrowKeys = trackKeys(["ArrowLeft", "ArrowRight", "ArrowUp"]);
+
+      function frame(time) {
+        if (running == "pausing") {
+          running = "no";
+          return false;
+        }
+
+        state = state.update(time, arrowKeys);
+        display.syncState(state);
+        if (state.status == "playing") {
+          return true;
+        } else if (ending > 0) {
+          ending -= time;
+          return true;
+        } else {
+          display.clear();
+          window.removeEventListener("keydown", escHandler);
+          arrowKeys.unregister();
+          resolve(state.status);
+          return false;
+        }
+      }
+      runAnimation(frame);
+    });
+  }
+
+  function trackKeys(keys) {
+    let down = Object.create(null);
+    function track(event) {
+      if (keys.includes(event.key)) {
+        down[event.key] = event.type == "keydown";
+        event.preventDefault();
+      }
+    }
+    window.addEventListener("keydown", track);
+    window.addEventListener("keyup", track);
+    down.unregister = () => {
+      window.removeEventListener("keydown", track);
+      window.removeEventListener("keyup", track);
+    };
+    return down;
+  }
+
+  runGame(GAME_LEVELS, DOMDisplay);
+</script>
+</body>

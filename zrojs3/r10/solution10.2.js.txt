@@ -1,0 +1,13 @@
+const {buildGraph} = require("./graph");
+
+const roads = [
+    "Dom Alicji-Dom Bartka", "Dom Alicji-Chata",
+    "Dom Alicji-Poczta", "Dom Bartka-Ratusz",
+    "Dom Darii-Dom Ernesta", "Dom Darii-Ratusz",
+    "Dom Ernesta-Dom Grety", "Dom Grety-Farma",
+    "Dom Grety-Sklep", "Rynek-Farma",
+    "Rynek-Poczta", "Rynek-Sklep",
+    "Rynek-Ratusz", "Sklep-Ratusz"
+];
+
+exports.roadGraph = buildGraph(roads.map(r => r.split("-")));
